@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <style>
+      .user-card {
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 20px;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      #user-cards-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 32px;
+      }
+
+      .user-card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .user-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .user-username {
+        font-size: 16px;
+        color: #858585;
+        margin: 0 0 0 10px;
+      }
+
+      .user-card-content {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .user-details {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        padding: 0;
+      }
+
+      .user-label {
+        display: block;
+        width: 100%;
+        font-weight: bold;
+        color: #777;
+        margin-bottom: 5px;
+      }
+
+      .user-value {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .modal {
+        display: none;
+        position: absolute;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+      }
+
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .user-details {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .user-label {
+        display: block;
+        width: 100%;
+        font-weight: bold;
+        color: #777;
+        margin-bottom: 5px;
+      }
+
+      .user-value {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    </style>
+    <div id="user-cards-container"></div>
+    <div id="user-modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 class="user-name"></h2>
+        <p class="user-username"></p>
+        <ul class="user-details"></ul>
+        <button id="user-posts-button">View User Posts</button>
+      </div>
+    </div>
+    <script>
+      // Fetch user data from the API
+      const res = fetch("https://jsonplaceholder.typicode.com/users")
+        .then((response) => response.json())
+        .then((users) => {
+          // Generate user cards
+          const userCardsContainer = document.getElementById(
+            "user-cards-container"
+          );
+          const userModal = document.getElementById("user-modal");
+
+          users.forEach((user) => {
+            const userCard = document.createElement("div");
+            userCard.classList.add("user-card");
+            userCard.id = user.id;
+            userCard.innerHTML = `
+                <div class="user-card-header">
+                    <h2 class="user-name">${user.name}</h2>
+                    <p class="user-username">@${user.username}</p>
+                </div>
+             
+            `;
+            userCardsContainer.appendChild(userCard);
+
+            userCardsContainer.addEventListener("click", () => {
+                // Get the selected user
+                const userId = parseInt(event.target.id);
+                const user = users.find((user) => user.id === userId);
+
+                // Display the user details in the modal
+                const userName = document.querySelector(".user-name");
+                const userUsername = document.querySelector(".user-username");
+                const userDetails = document.querySelector(".user-details");
+                userName.textContent = user.name;
+                userUsername.textContent = `@${user.username}`;
+                userDetails.innerHTML = `
+      <li><span class="user-label">Email:</span> <span class="user-value">${user.email}</span></li>
+      <li><span class="user-label">Address:</span> <span class="user-value">${user.address.street}, ${user.address.suite}, ${user.address.city}, ${user.address.zipcode}</span></li>
+      <li><span class="user-label">Phone:</span> <span class="user-value">${user.phone}</span></li>
+      <li><span class="user-label">Website:</span> <span class="user-value">${user.website}</span></li>
+      <li><span class="user-label">Company:</span> <span class="user-value">${user.company.name}</span></li>
+    `;
+
+                // Display the modal
+                userModal.style.display = "block";
+
+                // Add an event listener to the "View User Posts" button
+                const userPostsButton =
+                  userModal.querySelector("#user-posts-button");
+                userPostsButton.addEventListener("click", () => {
+                  // Fetch the user's posts
+                  fetch(
+                    `https://jsonplaceholder.typicode.com/users/${userId}/posts`
+                  )
+                    .then((response) => response.json())
+                    .then((posts) => {
+                      // Create the post cards
+                      const postCards = posts.map((post) => {
+                        const postCard = document.createElement("div");
+                        postCard.classList.add("post-card");
+                        postCard.innerHTML = `
+              <p class="post-title">${post.title}</p>
+              <p class="post-body">${post.body}</p>
+              <img class="post-image" src="https://picsum.photos/id/${post.id}/300/200">
+            `;
+                        return postCard;
+                      });
+
+                      // Display the post cards in a container
+                      const postCardsContainer = document.createElement("div");
+                      postCardsContainer.classList.add("post-cards-container");
+                      postCardsContainer.append(...postCards);
+
+                      // Add the post cards container to the body
+                      document.body.appendChild(postCardsContainer);
+                    })
+                    .catch((error) => console.error(error));
+                });
+            });
+          });
+
+          // Get the modal and the user cards container
+
+          // Add an event listener to each user card
+
+          // Add an event listener to the modal to close it when the close button is clicked
+          const closeButton = userModal.querySelector(".close");
+          closeButton.addEventListener("click", () => {
+            userModal.style.display = "none";
+          });
+
+          // Add an event listener to the modal to close it when the background is clicked
+          window.addEventListener("click", (event) => {
+            if (event.target === userModal) {
+              userModal.style.display = "none";
+            }
+          });
+        })
+        .catch((error) => console.error(error));
+    </script>
+  </body>
+</html>
